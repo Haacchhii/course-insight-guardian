@@ -11,13 +11,13 @@ const FeedbackTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [department, setDepartment] = useState("all");
   
-  const filteredEvaluations = mockEvaluations.filter(eval => {
+  const filteredEvaluations = mockEvaluations.filter(evaluation => {
     const matchesSearch = 
-      eval.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      eval.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      eval.comments.toLowerCase().includes(searchTerm.toLowerCase());
+      evaluation.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      evaluation.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      evaluation.comments.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesDepartment = department === "all" || eval.department === department;
+    const matchesDepartment = department === "all" || evaluation.department === department;
     
     return matchesSearch && matchesDepartment;
   });

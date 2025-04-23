@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { mockEvaluations } from "@/utils/mockData";
 
 const AnomalyDetection = () => {
-  const anomalies = mockEvaluations.filter(eval => eval.isAnomaly);
+  const anomalies = mockEvaluations.filter(evaluation => evaluation.isAnomaly);
 
   return (
     <Card className="md:col-span-2">
