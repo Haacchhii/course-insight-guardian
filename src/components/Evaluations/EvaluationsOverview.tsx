@@ -9,7 +9,7 @@ const EvaluationsOverview = () => {
   // Filter evaluations based on user role and department
   const filteredEvals = userRole === 'admin'
     ? mockEvaluations
-    : mockEvaluations.filter(eval => eval.department === department);
+    : mockEvaluations.filter(evaluation => evaluation.department === department);
   
   const totalEvals = filteredEvals.length;
   

@@ -9,19 +9,19 @@ const AnomalyOverview = () => {
   // Filter evaluations based on user role and department
   const filteredEvaluations = userRole === 'admin'
     ? mockEvaluations
-    : mockEvaluations.filter(eval => eval.department === department);
+    : mockEvaluations.filter(evaluation => evaluation.department === department);
   
   const totalEvaluations = filteredEvaluations.length;
-  const anomaliesCount = filteredEvaluations.filter(eval => eval.isAnomaly).length;
+  const anomaliesCount = filteredEvaluations.filter(evaluation => evaluation.isAnomaly).length;
   const anomalyPercentage = totalEvaluations > 0 
     ? Math.round((anomaliesCount / totalEvaluations) * 100) 
     : 0;
   
   // Calculate department distribution of anomalies
   const departmentAnomalies = mockEvaluations
-    .filter(eval => eval.isAnomaly)
-    .reduce((acc, eval) => {
-      acc[eval.department] = (acc[eval.department] || 0) + 1;
+    .filter(evaluation => evaluation.isAnomaly)
+    .reduce((acc, evaluation) => {
+      acc[evaluation.department] = (acc[evaluation.department] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
