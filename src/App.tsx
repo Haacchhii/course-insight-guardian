@@ -10,7 +10,6 @@ import Dashboard from "./pages/Dashboard";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
 import AnomalyDetectionPage from "./pages/AnomalyDetection";
 import CoursesPage from "./pages/Courses";
-import InstructorsPage from "./pages/Instructors";
 import DepartmentsPage from "./pages/Departments";
 import EvaluationsPage from "./pages/Evaluations";
 import NotFound from "./pages/NotFound";
@@ -30,7 +29,6 @@ const App = () => (
             <Route path="/sentiment" element={<SentimentAnalysis />} />
             <Route path="/anomalies" element={<AnomalyDetectionPage />} />
             <Route path="/courses" element={<CoursesPage />} />
-            <Route path="/instructors" element={<InstructorsPage />} />
             <Route path="/departments" element={<DepartmentsPage />} />
             <Route path="/evaluations" element={<EvaluationsPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

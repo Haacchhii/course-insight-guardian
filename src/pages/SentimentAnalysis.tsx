@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import Navbar from "@/components/Layout/Navbar";
 import Sidebar from "@/components/Layout/Sidebar";
 import SentimentOverview from "@/components/Sentiment/SentimentOverview";
-import SentimentTrends from "@/components/Sentiment/SentimentTrends";
 import SentimentByDepartment from "@/components/Sentiment/SentimentByDepartment";
 import { useUser } from "@/contexts/UserContext";
 
@@ -32,8 +31,7 @@ const SentimentAnalysis = () => {
             
             <SentimentOverview />
             
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-              <SentimentTrends />
+            <div className="grid gap-4">
               <SentimentByDepartment />
             </div>
           </div>

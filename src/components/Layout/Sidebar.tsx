@@ -6,12 +6,10 @@ import {
   LayoutDashboard, 
   ChartPie,
   ChartBar,
-  Users, 
   Search, 
   Settings,
   List, 
   Book,
-  GraduationCap,
   University
 } from "lucide-react";
 
@@ -77,16 +75,10 @@ const Sidebar = () => {
           <div className="py-2">
             <p className="px-2 text-xs font-semibold text-muted-foreground mb-2">Administration</p>
             <SidebarItem
-              icon={GraduationCap}
+              icon={Book}
               label="Courses"
               href="/courses"
               isActive={pathName === "/courses"}
-            />
-            <SidebarItem
-              icon={Users}
-              label="Instructors"
-              href="/instructors"
-              isActive={pathName === "/instructors"}
             />
             <SidebarItem
               icon={University}
