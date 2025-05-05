@@ -194,7 +194,13 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
                       <YAxis domain={[0, 100]} />
                       <Tooltip 
                         formatter={(value) => {
-                          const numValue = typeof value === 'string' ? parseFloat(value) : value;
+                          // Ensure value is a number before calling toFixed
+                          const numValue = typeof value === 'number' 
+                            ? value 
+                            : typeof value === 'string' 
+                              ? parseFloat(value) 
+                              : 0;
+                          
                           return [`${numValue.toFixed(1)}%`, 'Percentage'];
                         }} 
                       />

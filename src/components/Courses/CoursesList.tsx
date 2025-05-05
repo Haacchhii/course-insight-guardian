@@ -10,11 +10,19 @@ import { useUser } from "@/contexts/UserContext";
 import CourseDetailModal from "./CourseDetailModal";
 import { Course } from "@/utils/mockData";
 
+// Define the interface that matches what CourseDetailModal expects
+interface CourseDetail {
+  id: string;
+  code: string;
+  name: string;
+  department: string;
+}
+
 const CoursesList = () => {
   const { userRole, department } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<CourseDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filter courses based on user role, department, search term, and status filter
