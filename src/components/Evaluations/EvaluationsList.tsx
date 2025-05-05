@@ -12,8 +12,9 @@ const EvaluationsList = () => {
   const { userRole, department } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
+  const [semesterFilter, setSemesterFilter] = useState("all");
   
-  // Filter evaluations based on user role, department, and search term
+  // Filter evaluations based on user role, department, search term and semester
   const filteredEvaluations = mockEvaluations.filter(evaluation => {
     // Department filter based on user role
     const departmentMatch = userRole === 'admin' || evaluation.department === department;
@@ -24,7 +25,12 @@ const EvaluationsList = () => {
       evaluation.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
       evaluation.comments.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return departmentMatch && searchMatch;
+    // Semester filter
+    const semesterMatch = 
+      semesterFilter === 'all' || 
+      (evaluation.semester + ' ' + evaluation.year) === semesterFilter;
+    
+    return departmentMatch && searchMatch && semesterMatch;
   });
   
   // Sort evaluations
@@ -33,9 +39,27 @@ const EvaluationsList = () => {
     if (sortBy === 'instructor') return a.instructor.localeCompare(b.instructor);
     if (sortBy === 'rating') return b.ratings.overall - a.ratings.overall;
     if (sortBy === 'sentiment') return b.sentimentScore - a.sentimentScore;
+    if (sortBy === 'semester') {
+      // Sort by year first (descending)
+      if (a.year !== b.year) return b.year - a.year;
+      // Then by semester (Second comes before First)
+      return a.semester === 'Second' ? -1 : 1;
+    }
     // Default: sort by date (year and semester combined)
     if (a.year !== b.year) return b.year - a.year;
     return a.semester === 'Second' ? -1 : 1; // Second semester comes before First
+  });
+  
+  // Get unique semesters for the filter
+  const semesters = Array.from(new Set(mockEvaluations.map(
+    evaluation => `${evaluation.semester} ${evaluation.year}`
+  ))).sort((a, b) => {
+    const yearA = parseInt(a.split(' ')[1]);
+    const yearB = parseInt(b.split(' ')[1]);
+    // Sort by year (descending)
+    if (yearA !== yearB) return yearB - yearA;
+    // Then by semester (Second comes before First)
+    return a.includes('Second') ? -1 : 1;
   });
   
   const getSentimentLabel = (score: number) => {
@@ -57,19 +81,33 @@ const EvaluationsList = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
           <Input
             placeholder="Search evaluations..."
             className="md:max-w-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          
+          <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+            <SelectTrigger className="md:max-w-xs">
+              <SelectValue placeholder="Filter by semester" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Semesters</SelectItem>
+              {semesters.map(semester => (
+                <SelectItem key={semester} value={semester}>{semester}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="md:max-w-xs">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="date">Sort by Date</SelectItem>
+              <SelectItem value="semester">Sort by Semester</SelectItem>
               <SelectItem value="course">Sort by Course</SelectItem>
               <SelectItem value="instructor">Sort by Instructor</SelectItem>
               <SelectItem value="rating">Sort by Rating</SelectItem>

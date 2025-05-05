@@ -1,26 +1,55 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { mockEvaluations } from "@/utils/mockData";
 import { useUser } from "@/contexts/UserContext";
 
 const AnomalyList = () => {
   const { userRole, department } = useUser();
+  const [semesterFilter, setSemesterFilter] = useState("all");
   
-  // Filter anomalies based on user role and department
+  // Get unique semesters for the filter
+  const semesters = Array.from(new Set(mockEvaluations
+    .filter(evaluation => evaluation.isAnomaly)
+    .map(evaluation => `${evaluation.semester} ${evaluation.year}`)
+  )).sort((a, b) => {
+    const yearA = parseInt(a.split(' ')[1]);
+    const yearB = parseInt(b.split(' ')[1]);
+    // Sort by year (descending)
+    if (yearA !== yearB) return yearB - yearA;
+    // Then by semester (Second comes before First)
+    return a.includes('Second') ? -1 : 1;
+  });
+  
+  // Filter anomalies based on user role, department, and semester
   const anomalies = mockEvaluations.filter(evaluation => 
-    evaluation.isAnomaly && (
-      userRole === 'admin' || evaluation.department === department
-    )
+    evaluation.isAnomaly && 
+    (userRole === 'admin' || evaluation.department === department) &&
+    (semesterFilter === 'all' || (evaluation.semester + ' ' + evaluation.year) === semesterFilter)
   );
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Detected Anomalies</CardTitle>
-        <CardDescription>
-          Unusual feedback patterns detected by DBSCAN clustering
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle>Detected Anomalies</CardTitle>
+          <CardDescription>
+            Unusual feedback patterns detected by DBSCAN clustering
+          </CardDescription>
+        </div>
+        <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by semester" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Semesters</SelectItem>
+            {semesters.map(semester => (
+              <SelectItem key={semester} value={semester}>{semester}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         {anomalies.length > 0 ? (

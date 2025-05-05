@@ -10,6 +10,19 @@ import { Badge } from "@/components/ui/badge";
 const FeedbackTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [department, setDepartment] = useState("all");
+  const [semesterFilter, setSemesterFilter] = useState("all");
+  
+  // Get unique semesters for the filter
+  const semesters = Array.from(new Set(mockEvaluations.map(
+    evaluation => `${evaluation.semester} ${evaluation.year}`
+  ))).sort((a, b) => {
+    const yearA = parseInt(a.split(' ')[1]);
+    const yearB = parseInt(b.split(' ')[1]);
+    // Sort by year (descending)
+    if (yearA !== yearB) return yearB - yearA;
+    // Then by semester (Second comes before First)
+    return a.includes('Second') ? -1 : 1;
+  });
   
   const filteredEvaluations = mockEvaluations.filter(evaluation => {
     const matchesSearch = 
@@ -19,7 +32,11 @@ const FeedbackTable = () => {
       
     const matchesDepartment = department === "all" || evaluation.department === department;
     
-    return matchesSearch && matchesDepartment;
+    const matchesSemester = 
+      semesterFilter === 'all' || 
+      (evaluation.semester + ' ' + evaluation.year) === semesterFilter;
+    
+    return matchesSearch && matchesDepartment && matchesSemester;
   });
 
   const getSentimentLabel = (score: number) => {
@@ -39,13 +56,14 @@ const FeedbackTable = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
           <Input
             placeholder="Search evaluations..."
             className="md:max-w-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          
           <Select value={department} onValueChange={setDepartment}>
             <SelectTrigger className="md:max-w-xs">
               <SelectValue placeholder="Filter by department" />
@@ -59,6 +77,18 @@ const FeedbackTable = () => {
               <SelectItem value="Humanities">Humanities</SelectItem>
             </SelectContent>
           </Select>
+          
+          <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+            <SelectTrigger className="md:max-w-xs">
+              <SelectValue placeholder="Filter by semester" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Semesters</SelectItem>
+              {semesters.map(semester => (
+                <SelectItem key={semester} value={semester}>{semester}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="rounded-md border">
           <Table>
@@ -69,6 +99,7 @@ const FeedbackTable = () => {
                 <TableHead>Rating</TableHead>
                 <TableHead className="hidden md:table-cell">Comment</TableHead>
                 <TableHead>Sentiment</TableHead>
+                <TableHead>Semester</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -88,12 +119,13 @@ const FeedbackTable = () => {
                           {sentiment.label}
                         </Badge>
                       </TableCell>
+                      <TableCell>{evaluation.semester} {evaluation.year}</TableCell>
                     </TableRow>
                   );
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No results found.
                   </TableCell>
                 </TableRow>
