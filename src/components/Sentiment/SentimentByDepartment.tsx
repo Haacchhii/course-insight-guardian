@@ -1,22 +1,59 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { mockDepartmentRatings } from "@/utils/mockData";
+import { mockDepartmentRatings, mockEvaluations } from "@/utils/mockData";
+import { useMemo } from "react";
 
-const SentimentByDepartment = () => {
+interface SentimentByDepartmentProps {
+  semesterFilter: string;
+}
+
+const SentimentByDepartment = ({ semesterFilter }: SentimentByDepartmentProps) => {
+  const departmentRatings = useMemo(() => {
+    if (semesterFilter === "all") {
+      return mockDepartmentRatings;
+    }
+    
+    // Split semester and year
+    const [semester, year] = semesterFilter.split(' ');
+    
+    // Filter evaluations by semester and year
+    const filteredEvaluations = mockEvaluations.filter(
+      evaluation => evaluation.semester === semester && evaluation.year === year
+    );
+    
+    // Group by department and calculate average rating
+    const departments = {} as Record<string, { total: number, count: number }>;
+    
+    filteredEvaluations.forEach(evaluation => {
+      if (!departments[evaluation.department]) {
+        departments[evaluation.department] = { total: 0, count: 0 };
+      }
+      departments[evaluation.department].total += evaluation.ratings.overall;
+      departments[evaluation.department].count += 1;
+    });
+    
+    // Convert to the format expected by the chart
+    return Object.entries(departments).map(([department, { total, count }]) => ({
+      department,
+      rating: count > 0 ? Number((total / count).toFixed(1)) : 0
+    }));
+  }, [semesterFilter]);
+
   return (
     <Card className="col-span-1">
       <CardHeader>
         <CardTitle>Sentiment By Department</CardTitle>
         <CardDescription>
           Comparing average sentiment scores across academic departments
+          {semesterFilter !== "all" && ` for ${semesterFilter}`}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={mockDepartmentRatings}
+              data={departmentRatings}
               margin={{
                 top: 5,
                 right: 30,
