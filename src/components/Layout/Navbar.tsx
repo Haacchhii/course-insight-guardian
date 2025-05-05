@@ -5,7 +5,8 @@ import {
   Bell, 
   User,
   Settings,
-  ChevronDown
+  ChevronDown,
+  LogOut
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -17,12 +18,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useUser } from "@/contexts/UserContext";
 import { mockDepartments } from "@/utils/mockData";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { userRole, department, setUserRole, setDepartment } = useUser();
+  const { userRole, department, setUserRole, setDepartment, user, logout } = useUser();
+  const { toast } = useToast();
   
   const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of the system",
+    });
     navigate("/");
   };
   
@@ -81,19 +89,35 @@ const Navbar = () => {
         <Button variant="ghost" size="icon" className="text-muted-foreground">
           <Settings className="h-5 w-5" />
         </Button>
-        <div className="flex items-center gap-2">
-          <div className="hidden md:block text-right">
-            <p className="text-sm font-medium">
-              {userRole === 'admin' ? 'Admin User' : department}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {userRole === 'admin' ? 'Administrator' : 'Department Head'}
-            </p>
-          </div>
-          <Button variant="ghost" size="icon" onClick={handleLogout}>
-            <User className="h-5 w-5" />
-          </Button>
-        </div>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-medium">
+                  {user?.name || (userRole === 'admin' ? 'Admin User' : department)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {user?.email || (userRole === 'admin' ? 'Administrator' : 'Department Head')}
+                </p>
+              </div>
+              <Button variant="ghost" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { UserProvider } from "./contexts/UserContext";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { UserProvider, useUser } from "./contexts/UserContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
@@ -16,6 +16,65 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useUser();
+  const location = useLocation();
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-university-700"></div>
+    </div>;
+  }
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+  
+  // Show children if authenticated
+  return <>{children}</>;
+}
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Index />} />
+    <Route path="/dashboard" element={
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    } />
+    <Route path="/sentiment" element={
+      <ProtectedRoute>
+        <SentimentAnalysis />
+      </ProtectedRoute>
+    } />
+    <Route path="/anomalies" element={
+      <ProtectedRoute>
+        <AnomalyDetectionPage />
+      </ProtectedRoute>
+    } />
+    <Route path="/courses" element={
+      <ProtectedRoute>
+        <CoursesPage />
+      </ProtectedRoute>
+    } />
+    <Route path="/departments" element={
+      <ProtectedRoute>
+        <DepartmentsPage />
+      </ProtectedRoute>
+    } />
+    <Route path="/evaluations" element={
+      <ProtectedRoute>
+        <EvaluationsPage />
+      </ProtectedRoute>
+    } />
+    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -23,17 +82,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/sentiment" element={<SentimentAnalysis />} />
-            <Route path="/anomalies" element={<AnomalyDetectionPage />} />
-            <Route path="/courses" element={<CoursesPage />} />
-            <Route path="/departments" element={<DepartmentsPage />} />
-            <Route path="/evaluations" element={<EvaluationsPage />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </UserProvider>
     </TooltipProvider>

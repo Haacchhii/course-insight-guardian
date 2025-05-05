@@ -1,233 +1,239 @@
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMemo, useState } from "react";
 import { mockEvaluations } from "@/utils/mockData";
-import { useMemo } from "react";
-import { Course } from "@/utils/mockData";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 interface CourseDetailModalProps {
-  course: Course | null;
+  course: { id: string; code: string; name: string; department: string } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProps) => {
+  const [activeTab, setActiveTab] = useState("overview");
+  
   const evaluations = useMemo(() => {
     if (!course) return [];
-    return mockEvaluations.filter(eval => eval.course.includes(course.code));
+    return mockEvaluations.filter(evaluation => evaluation.course.includes(course.code));
   }, [course]);
-
-  // Calculate sentiment stats for the course
-  const sentimentStats = useMemo(() => {
-    if (!evaluations.length) return { positive: 0, neutral: 0, negative: 0 };
+  
+  const sentimentData = useMemo(() => {
+    if (!course || evaluations.length === 0) return [];
     
-    const positive = evaluations.filter(e => e.sentimentScore > 0.3).length;
-    const neutral = evaluations.filter(e => e.sentimentScore >= -0.3 && e.sentimentScore <= 0.3).length;
-    const negative = evaluations.filter(e => e.sentimentScore < -0.3).length;
-    const total = evaluations.length || 1; // Avoid division by zero
+    // Group evaluations by semester and year
+    const semesterData: { name: string; positive: number; neutral: number; negative: number }[] = [];
     
-    return {
-      positive: Math.round((positive / total) * 100),
-      neutral: Math.round((neutral / total) * 100),
-      negative: Math.round((negative / total) * 100)
-    };
-  }, [evaluations]);
-
-  // Get evaluations by semester
-  const evaluationsBySemester = useMemo(() => {
     const semesters = {} as Record<string, typeof evaluations>;
     
-    evaluations.forEach(eval => {
-      const semesterKey = `${eval.semester} ${eval.year}`;
+    evaluations.forEach(evaluation => {
+      const semesterKey = `${evaluation.semester} ${evaluation.year}`;
       if (!semesters[semesterKey]) {
         semesters[semesterKey] = [];
       }
-      semesters[semesterKey].push(eval);
+      semesters[semesterKey].push(evaluation);
     });
     
-    return semesters;
+    // Calculate sentiment for each semester
+    Object.entries(semesters).forEach(([semesterKey, semesterEvaluations]) => {
+      const totalEvals = semesterEvaluations.length;
+      
+      if (totalEvals === 0) return;
+      
+      const positive = semesterEvaluations.filter(e => e.ratings.overall >= 4).length;
+      const neutral = semesterEvaluations.filter(e => e.ratings.overall >= 3 && e.ratings.overall < 4).length;
+      const negative = semesterEvaluations.filter(e => e.ratings.overall < 3).length;
+      
+      semesterData.push({
+        name: semesterKey,
+        positive: (positive / totalEvals) * 100,
+        neutral: (neutral / totalEvals) * 100,
+        negative: (negative / totalEvals) * 100,
+      });
+    });
+    
+    return semesterData;
+  }, [course, evaluations]);
+  
+  const averageRatings = useMemo(() => {
+    if (!evaluations.length) return { overall: 0, content: 0, delivery: 0, assessment: 0 };
+    
+    const totals = evaluations.reduce(
+      (acc, curr) => {
+        return {
+          overall: acc.overall + curr.ratings.overall,
+          content: acc.content + curr.ratings.content,
+          delivery: acc.delivery + curr.ratings.delivery,
+          assessment: acc.assessment + curr.ratings.assessment,
+        };
+      },
+      { overall: 0, content: 0, delivery: 0, assessment: 0 }
+    );
+    
+    const count = evaluations.length;
+    
+    return {
+      overall: parseFloat((totals.overall / count).toFixed(2)),
+      content: parseFloat((totals.content / count).toFixed(2)),
+      delivery: parseFloat((totals.delivery / count).toFixed(2)),
+      assessment: parseFloat((totals.assessment / count).toFixed(2)),
+    };
   }, [evaluations]);
   
-  const semesterKeys = Object.keys(evaluationsBySemester).sort((a, b) => {
-    const yearA = parseInt(a.split(' ')[1]);
-    const yearB = parseInt(b.split(' ')[1]);
-    if (yearA !== yearB) return yearB - yearA;
-    return a.includes('Second') ? -1 : 1;
-  });
+  const ratingBreakdown = useMemo(() => {
+    return [
+      { name: 'Content', value: averageRatings.content },
+      { name: 'Delivery', value: averageRatings.delivery },
+      { name: 'Assessment', value: averageRatings.assessment },
+    ];
+  }, [averageRatings]);
+  
+  const recentComments = useMemo(() => {
+    return evaluations
+      .filter(eval => eval.comments && eval.comments.trim().length > 0)
+      .sort((a, b) => b.year - a.year || (b.semester === 'Second' ? 1 : -1))
+      .slice(0, 5);
+  }, [evaluations]);
 
   if (!course) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>{course.code}: {course.title}</DialogTitle>
-          <DialogDescription>
-            {course.department} Department • {course.credits} Credits
-          </DialogDescription>
+          <DialogTitle className="text-xl font-bold">
+            {course.code}: {course.name}
+          </DialogTitle>
+          <CardDescription>Department: {course.department}</CardDescription>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Course Rating
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <span className={`text-3xl font-bold 
-                  ${course.averageRating >= 4.0 ? 'text-green-600' : 
-                    course.averageRating >= 3.0 ? 'text-blue-600' : 
-                    course.averageRating >= 2.0 ? 'text-yellow-600' : 
-                    'text-red-600'}`}>
-                  {course.averageRating.toFixed(1)}
-                </span>
-                <span className="text-xl text-muted-foreground">/5.0</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Based on {course.totalEvaluations} evaluations
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Sentiment Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="flex items-center">
-                    <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
-                    Positive
-                  </span>
-                  <span className="font-medium">{sentimentStats.positive}%</span>
-                </div>
-                <Progress value={sentimentStats.positive} className="h-1 bg-gray-100" />
-                
-                <div className="flex justify-between text-xs">
-                  <span className="flex items-center">
-                    <span className="h-2 w-2 rounded-full bg-gray-400 mr-1"></span>
-                    Neutral
-                  </span>
-                  <span className="font-medium">{sentimentStats.neutral}%</span>
-                </div>
-                <Progress value={sentimentStats.neutral} className="h-1 bg-gray-100" />
-                
-                <div className="flex justify-between text-xs">
-                  <span className="flex items-center">
-                    <span className="h-2 w-2 rounded-full bg-red-500 mr-1"></span>
-                    Negative
-                  </span>
-                  <span className="font-medium">{sentimentStats.negative}%</span>
-                </div>
-                <Progress value={sentimentStats.negative} className="h-1 bg-gray-100" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <Tabs defaultValue={semesterKeys.length > 0 ? semesterKeys[0] : "overview"}>
-          <TabsList className="w-full overflow-x-auto flex-nowrap">
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            {semesterKeys.map(semester => (
-              <TabsTrigger key={semester} value={semester}>
-                {semester}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="sentiment">Sentiment Analysis</TabsTrigger>
+            <TabsTrigger value="comments">Student Comments</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="overview" className="mt-4">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-1">Course Description</h3>
-                <p className="text-sm text-muted-foreground">{course.description}</p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">Instructors</h3>
-                <p className="text-sm">{course.instructors.join(", ")}</p>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-1">Status</h3>
-                <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                  ${course.status === 'active' ? 'bg-green-100 text-green-800' : 
-                    course.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 
-                    'bg-yellow-100 text-yellow-800'}`}>
-                  {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
-                </div>
-              </div>
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Overall Rating</CardTitle>
+                  <CardDescription>Average across all evaluations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-center">
+                    <div className="text-5xl font-bold text-university-700">
+                      {averageRatings.overall}
+                      <span className="text-lg text-muted-foreground">/5.0</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evaluations</CardTitle>
+                  <CardDescription>Total number of evaluations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-center">
+                    <div className="text-5xl font-bold text-university-700">
+                      {evaluations.length}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Rating Breakdown</CardTitle>
+                <CardDescription>Average ratings by category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ratingBreakdown} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" domain={[0, 5]} />
+                      <YAxis dataKey="name" type="category" width={100} />
+                      <Tooltip formatter={(value) => [`${value}/5.0`, 'Rating']} />
+                      <Bar dataKey="value" fill="#3b82f6" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
           
-          {/* Semester-specific tabs */}
-          {semesterKeys.map(semester => {
-            const semesterEvaluations = evaluationsBySemester[semester];
-            const averageRating = semesterEvaluations.reduce(
-              (sum, eval_) => sum + eval_.ratings.overall, 0
-            ) / semesterEvaluations.length;
-            
-            return (
-              <TabsContent key={semester} value={semester} className="mt-4">
-                <div className="space-y-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Semester Rating: {averageRating.toFixed(1)}/5.0</CardTitle>
-                      <CardDescription>
-                        Based on {semesterEvaluations.length} evaluations for {semester}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {/* Rating breakdown */}
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Rating Categories</h4>
-                          <div className="space-y-2">
-                            {['content', 'delivery', 'assessment', 'support'].map(category => {
-                              const categoryAvg = semesterEvaluations.reduce(
-                                (sum, eval_) => sum + eval_.ratings[category as keyof typeof eval_.ratings], 0
-                              ) / semesterEvaluations.length;
-                              
-                              return (
-                                <div key={category} className="flex justify-between items-center">
-                                  <span className="text-sm capitalize">{category}</span>
-                                  <div className="flex items-center space-x-2">
-                                    <Progress 
-                                      value={(categoryAvg / 5) * 100} 
-                                      className="h-2 w-24 md:w-40" 
-                                    />
-                                    <span className="text-sm font-medium">{categoryAvg.toFixed(1)}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Comments */}
-                        <div>
-                          <h4 className="text-sm font-medium mb-2">Student Comments</h4>
-                          <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {semesterEvaluations.map((eval_, idx) => (
-                              <Card key={idx} className={`p-3 ${eval_.sentimentScore > 0.3 ? 'bg-green-50' : eval_.sentimentScore < -0.3 ? 'bg-red-50' : 'bg-gray-50'}`}>
-                                <p className="text-sm">{eval_.comments}</p>
-                              </Card>
-                            ))}
-                          </div>
+          <TabsContent value="sentiment" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sentiment Trends</CardTitle>
+                <CardDescription>Sentiment analysis across semesters</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={sentimentData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis domain={[0, 100]} />
+                      <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Percentage']} />
+                      <Line type="monotone" dataKey="positive" stroke="#22c55e" name="Positive" />
+                      <Line type="monotone" dataKey="neutral" stroke="#f59e0b" name="Neutral" />
+                      <Line type="monotone" dataKey="negative" stroke="#ef4444" name="Negative" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="comments" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Comments</CardTitle>
+                <CardDescription>Student feedback from course evaluations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {recentComments.length > 0 ? (
+                  <div className="space-y-4">
+                    {recentComments.map((comment, idx) => (
+                      <div key={idx} className="border-b pb-3 last:border-b-0">
+                        <p className="italic text-muted-foreground">"{comment.comments}"</p>
+                        <div className="flex justify-between mt-2">
+                          <span className="text-sm font-medium">
+                            Rating: {comment.ratings.overall}/5
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {comment.semester} {comment.year}
+                          </span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-            );
-          })}
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">
+                    No comments available for this course.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
