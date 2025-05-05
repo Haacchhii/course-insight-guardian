@@ -54,7 +54,12 @@ const CoursesList = () => {
 
   // Handle row click to open the detail modal
   const handleRowClick = (course: Course) => {
-    setSelectedCourse(course);
+    setSelectedCourse({
+      id: course.id,
+      code: course.code,
+      name: course.title, // Map title to name for compatibility with modal
+      department: course.department
+    });
     setIsModalOpen(true);
   };
 

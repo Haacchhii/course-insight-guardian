@@ -103,7 +103,7 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
   
   const recentComments = useMemo(() => {
     return evaluations
-      .filter(eval => eval.comments && eval.comments.trim().length > 0)
+      .filter(evaluation => evaluation.comments && evaluation.comments.trim().length > 0)
       .sort((a, b) => b.year - a.year || (b.semester === 'Second' ? 1 : -1))
       .slice(0, 5);
   }, [evaluations]);
@@ -192,7 +192,12 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis domain={[0, 100]} />
-                      <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Percentage']} />
+                      <Tooltip 
+                        formatter={(value) => {
+                          const numValue = typeof value === 'string' ? parseFloat(value) : value;
+                          return [`${numValue.toFixed(1)}%`, 'Percentage'];
+                        }} 
+                      />
                       <Line type="monotone" dataKey="positive" stroke="#22c55e" name="Positive" />
                       <Line type="monotone" dataKey="neutral" stroke="#f59e0b" name="Neutral" />
                       <Line type="monotone" dataKey="negative" stroke="#ef4444" name="Negative" />
