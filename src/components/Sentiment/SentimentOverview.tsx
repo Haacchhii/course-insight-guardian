@@ -23,10 +23,11 @@ const SentimentOverview = ({ semesterFilter }: SentimentOverviewProps) => {
     
     // Split semester and year
     const [semester, year] = semesterFilter.split(' ');
+    const numYear = parseInt(year); // Convert year to number for comparison
     
     // Filter evaluations by semester and year
     const filteredEvaluations = mockEvaluations.filter(
-      evaluation => evaluation.semester === semester && evaluation.year === year
+      evaluation => evaluation.semester === semester && evaluation.year === numYear
     );
     
     // Calculate sentiment stats from filtered evaluations

@@ -7,11 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { mockCourses } from "@/utils/mockData";
 import { useUser } from "@/contexts/UserContext";
+import CourseDetailModal from "./CourseDetailModal";
+import { Course } from "@/utils/mockData";
 
 const CoursesList = () => {
   const { userRole, department } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filter courses based on user role, department, search term, and status filter
   const filteredCourses = mockCourses.filter(course => {
@@ -48,81 +52,99 @@ const CoursesList = () => {
     return "text-red-600";
   };
 
+  // Handle row click to open the detail modal
+  const handleRowClick = (course: Course) => {
+    setSelectedCourse(course);
+    setIsModalOpen(true);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Courses</CardTitle>
-        <CardDescription>
-          {userRole === 'admin' 
-            ? 'View and manage all courses across departments' 
-            : `View and manage courses in ${department} department`}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <Input
-            placeholder="Search courses..."
-            className="md:max-w-xs"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="md:max-w-xs">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Course Title</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Instructors</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course) => {
-                  const statusBadge = getStatusBadge(course.status);
-                  return (
-                    <TableRow key={course.id}>
-                      <TableCell className="font-medium">{course.code}</TableCell>
-                      <TableCell>{course.title}</TableCell>
-                      <TableCell>{course.department}</TableCell>
-                      <TableCell>{course.instructors.join(", ")}</TableCell>
-                      <TableCell className={getRatingColorClass(course.averageRating)}>
-                        {course.averageRating.toFixed(1)}/5.0
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusBadge.variant as any}>
-                          {statusBadge.label}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Courses</CardTitle>
+          <CardDescription>
+            {userRole === 'admin' 
+              ? 'View and manage all courses across departments' 
+              : `View and manage courses in ${department} department`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
+            <Input
+              placeholder="Search courses..."
+              className="md:max-w-xs"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="md:max-w-xs">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    No courses found.
-                  </TableCell>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Course Title</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Instructors</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {filteredCourses.length > 0 ? (
+                  filteredCourses.map((course) => {
+                    const statusBadge = getStatusBadge(course.status);
+                    return (
+                      <TableRow 
+                        key={course.id} 
+                        onClick={() => handleRowClick(course)}
+                        className="cursor-pointer hover:bg-slate-50"
+                      >
+                        <TableCell className="font-medium">{course.code}</TableCell>
+                        <TableCell>{course.title}</TableCell>
+                        <TableCell>{course.department}</TableCell>
+                        <TableCell>{course.instructors.join(", ")}</TableCell>
+                        <TableCell className={getRatingColorClass(course.averageRating)}>
+                          {course.averageRating.toFixed(1)}/5.0
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={statusBadge.variant as any}>
+                            {statusBadge.label}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center">
+                      No courses found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <CourseDetailModal
+        course={selectedCourse}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
+    </>
   );
 };
 
