@@ -24,6 +24,27 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 
+// Sample student courses
+const sampleCourses = [
+  "CS101 - Introduction to Programming",
+  "CS202 - Data Structures",
+  "MA101 - Calculus I",
+  "CS301 - Database Systems",
+  "CS350 - Artificial Intelligence",
+  "EN101 - Technical Communication",
+  "HU101 - Introduction to Philosophy",
+  "BA101 - Principles of Management"
+];
+
+// Sample evaluation questions
+const evaluationQuestions = {
+  content: "How would you rate the quality of course materials?",
+  delivery: "How effective was the instructor's teaching approach?",
+  assessment: "How fair and appropriate were the assessments?",
+  support: "How would you rate the support provided during the course?",
+  overall: "How would you rate the overall course experience?"
+};
+
 const StudentEvaluationPage = () => {
   const { user, logout } = useUser();
   const navigate = useNavigate();
@@ -99,6 +120,9 @@ const StudentEvaluationPage = () => {
     setComment("");
   };
 
+  // Get student courses (use sample courses if user.courses is not available)
+  const studentCourses = user?.courses || sampleCourses;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-4 md:px-6">
@@ -116,8 +140,8 @@ const StudentEvaluationPage = () => {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col items-end">
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-muted-foreground">{user?.program}</p>
+            <p className="text-sm font-medium">{user?.name || "Student Name"}</p>
+            <p className="text-xs text-muted-foreground">{user?.program || "Computer Science"}</p>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout}>
             <LogOut className="h-5 w-5" />
@@ -146,7 +170,7 @@ const StudentEvaluationPage = () => {
                     <SelectValue placeholder="Select a course" />
                   </SelectTrigger>
                   <SelectContent>
-                    {user?.courses?.map((course) => (
+                    {studentCourses.map((course) => (
                       <SelectItem key={course} value={course}>
                         {course}
                       </SelectItem>
@@ -168,7 +192,7 @@ const StudentEvaluationPage = () => {
                     <div>
                       <Label>Content Quality</Label>
                       <p className="text-sm text-muted-foreground mb-2">
-                        How would you rate the quality of course materials?
+                        {evaluationQuestions.content}
                       </p>
                       <RadioGroup 
                         className="flex space-x-4" 
@@ -188,7 +212,7 @@ const StudentEvaluationPage = () => {
                     <div>
                       <Label>Delivery Method</Label>
                       <p className="text-sm text-muted-foreground mb-2">
-                        How effective was the instructor's teaching approach?
+                        {evaluationQuestions.delivery}
                       </p>
                       <RadioGroup 
                         className="flex space-x-4" 
@@ -208,7 +232,7 @@ const StudentEvaluationPage = () => {
                     <div>
                       <Label>Assessment Fairness</Label>
                       <p className="text-sm text-muted-foreground mb-2">
-                        How fair and appropriate were the assessments?
+                        {evaluationQuestions.assessment}
                       </p>
                       <RadioGroup 
                         className="flex space-x-4" 
@@ -228,7 +252,7 @@ const StudentEvaluationPage = () => {
                     <div>
                       <Label>Support Provided</Label>
                       <p className="text-sm text-muted-foreground mb-2">
-                        How would you rate the support provided during the course?
+                        {evaluationQuestions.support}
                       </p>
                       <RadioGroup 
                         className="flex space-x-4" 
@@ -248,7 +272,7 @@ const StudentEvaluationPage = () => {
                     <div>
                       <Label>Overall Rating</Label>
                       <p className="text-sm text-muted-foreground mb-2">
-                        How would you rate the overall course experience?
+                        {evaluationQuestions.overall}
                       </p>
                       <RadioGroup 
                         className="flex space-x-4" 
@@ -272,7 +296,7 @@ const StudentEvaluationPage = () => {
                     </p>
                     <Textarea
                       id="comments"
-                      placeholder="Enter your comments here..."
+                      placeholder="Enter your comments here... For example: The instructor was very knowledgeable but could improve on providing timely feedback on assignments."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       className="min-h-[100px]"
