@@ -2,8 +2,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { mockStats } from "@/utils/mockData";
+import { useUser } from "@/contexts/UserContext";
 
 const OverviewStats = () => {
+  const { userRole, department } = useUser();
+  
+  // Adjust stats based on role (in a real app, this would fetch filtered data)
+  const adjustedStats = {
+    ...mockStats,
+    // Reduce numbers for department heads to simulate filtered data
+    ...(userRole === 'department_head' ? {
+      totalEvaluations: Math.round(mockStats.totalEvaluations * 0.3),
+      anomalyCount: Math.round(mockStats.anomalyCount * 0.25),
+    } : {})
+  };
+
   return (
     <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
       <Card>
@@ -13,9 +26,11 @@ const OverviewStats = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{mockStats.totalEvaluations}</div>
+          <div className="text-2xl font-bold">{adjustedStats.totalEvaluations}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            From all courses and departments
+            {userRole === 'admin' 
+              ? 'From all courses and departments' 
+              : `From ${department} department courses`}
           </p>
         </CardContent>
       </Card>
@@ -71,9 +86,11 @@ const OverviewStats = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-red-700">{mockStats.anomalyCount}</div>
+          <div className="text-2xl font-bold text-red-700">{adjustedStats.anomalyCount}</div>
           <p className="text-xs text-red-600 mt-1">
-            Requires attention
+            {userRole === 'admin' 
+              ? 'Requires attention across departments' 
+              : `Requires attention in ${department} department`}
           </p>
         </CardContent>
       </Card>

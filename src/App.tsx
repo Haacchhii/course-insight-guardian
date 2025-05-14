@@ -12,13 +12,17 @@ import AnomalyDetectionPage from "./pages/AnomalyDetection";
 import CoursesPage from "./pages/Courses";
 import DepartmentsPage from "./pages/Departments";
 import EvaluationsPage from "./pages/Evaluations";
+import StudentEvaluationPage from "./pages/StudentEvaluation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useUser();
+function ProtectedRoute({ children, allowedRoles = ["admin", "department_head"] }: { 
+  children: React.ReactNode, 
+  allowedRoles?: string[] 
+}) {
+  const { isAuthenticated, isLoading, userRole } = useUser();
   const location = useLocation();
   
   // Show loading state while checking authentication
@@ -33,7 +37,43 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" state={{ from: location }} replace />;
   }
   
-  // Show children if authenticated
+  // Check if user has permission to access the route
+  if (!allowedRoles.includes(userRole)) {
+    // Redirect students to their evaluation page
+    if (userRole === 'student') {
+      return <Navigate to="/student-evaluation" replace />;
+    }
+    // Redirect others to dashboard
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Show children if authenticated and authorized
+  return <>{children}</>;
+}
+
+// Student Route component
+function StudentRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, isStudent } = useUser();
+  const location = useLocation();
+  
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-university-700"></div>
+    </div>;
+  }
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+  
+  // Redirect to dashboard if not a student
+  if (!isStudent()) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // Show children if authenticated and is a student
   return <>{children}</>;
 }
 
@@ -69,6 +109,11 @@ const AppRoutes = () => (
       <ProtectedRoute>
         <EvaluationsPage />
       </ProtectedRoute>
+    } />
+    <Route path="/student-evaluation" element={
+      <StudentRoute>
+        <StudentEvaluationPage />
+      </StudentRoute>
     } />
     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
     <Route path="*" element={<NotFound />} />

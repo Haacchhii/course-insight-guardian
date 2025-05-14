@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
-type UserRole = 'admin' | 'department_head';
+type UserRole = 'admin' | 'department_head' | 'student';
 
 interface User {
   id: string;
@@ -9,6 +9,8 @@ interface User {
   name: string;
   role: UserRole;
   department: string | null;
+  program?: string; // Added for student role
+  courses?: string[]; // Added for student role
 }
 
 interface UserContextType {
@@ -19,6 +21,7 @@ interface UserContextType {
   setDepartment: (department: string | null) => void;
   isAdmin: () => boolean;
   isDepartmentHead: () => boolean;
+  isStudent: () => boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -52,6 +55,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = () => userRole === 'admin';
   const isDepartmentHead = () => userRole === 'department_head';
+  const isStudent = () => userRole === 'student';
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
@@ -67,19 +71,43 @@ export function UserProvider({ children }: { children: ReactNode }) {
         throw new Error('Password must be at least 6 characters');
       }
       
+      // Check if email indicates student role
+      let role = userRole;
+      let userDepartment = department;
+      let program = undefined;
+      let courses = undefined;
+
+      if (email.includes('student')) {
+        role = 'student';
+        userDepartment = 'Computer Science';
+        program = 'Bachelor of Science in Computer Science';
+        courses = ['CS101', 'CS201', 'MATH101', 'ENG101'];
+      } else if (email.includes('head')) {
+        role = 'department_head';
+        userDepartment = userDepartment || 'Computer Science';
+      } else {
+        role = 'admin';
+      }
+      
       // Mock successful login after validation
-      // In a real app, you would verify credentials against a backend
       const newUser: User = {
         id: crypto.randomUUID(),
         email,
         name: email.split('@')[0], // Extract name from email
-        role: userRole,
-        department,
+        role,
+        department: userDepartment,
       };
+      
+      if (role === 'student') {
+        newUser.program = program;
+        newUser.courses = courses;
+      }
       
       // Store user in local storage for session persistence
       localStorage.setItem('lpub_user', JSON.stringify(newUser));
       setUser(newUser);
+      setUserRole(role);
+      setDepartment(userDepartment);
       
       setIsLoading(false);
       return true;
@@ -104,6 +132,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setDepartment,
       isAdmin,
       isDepartmentHead,
+      isStudent,
       login,
       logout,
       isAuthenticated: !!user,

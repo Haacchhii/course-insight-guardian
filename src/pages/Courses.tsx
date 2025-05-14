@@ -4,6 +4,7 @@ import Navbar from "@/components/Layout/Navbar";
 import Sidebar from "@/components/Layout/Sidebar";
 import CoursesList from "@/components/Courses/CoursesList";
 import CoursesOverview from "@/components/Courses/CoursesOverview";
+import CourseManagement from "@/components/Courses/CourseManagement";
 import { useUser } from "@/contexts/UserContext";
 
 const CoursesPage = () => {
@@ -30,6 +31,7 @@ const CoursesPage = () => {
             </div>
             
             <CoursesOverview />
+            <CourseManagement />
             <CoursesList />
           </div>
         </main>

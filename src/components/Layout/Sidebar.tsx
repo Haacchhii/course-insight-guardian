@@ -12,6 +12,7 @@ import {
   Book,
   University
 } from "lucide-react";
+import { useUser } from "@/contexts/UserContext";
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -40,6 +41,12 @@ const SidebarItem = ({ icon: Icon, label, href, isActive }: SidebarItemProps) =>
 const Sidebar = () => {
   const location = useLocation();
   const pathName = location.pathname;
+  const { userRole, isStudent } = useUser();
+  
+  // Students don't see the sidebar
+  if (isStudent()) {
+    return null;
+  }
 
   return (
     <aside className="hidden md:flex flex-col h-screen w-64 border-r bg-white">

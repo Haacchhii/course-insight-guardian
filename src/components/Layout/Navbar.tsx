@@ -22,7 +22,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { userRole, department, setUserRole, setDepartment, user, logout } = useUser();
+  const { userRole, department, setUserRole, setDepartment, user, logout, isStudent } = useUser();
   const { toast } = useToast();
   
   const handleLogout = () => {
@@ -35,10 +35,20 @@ const Navbar = () => {
   };
   
   // Role switcher
-  const handleRoleChange = (role: 'admin' | 'department_head', deptName: string | null = null) => {
+  const handleRoleChange = (role: 'admin' | 'department_head' | 'student', deptName: string | null = null) => {
     setUserRole(role);
     setDepartment(deptName);
+    
+    // Redirect student to the student evaluation page
+    if (role === 'student') {
+      navigate("/student-evaluation");
+    }
   };
+
+  // Students have a simplified header, so return null for the full navbar
+  if (isStudent()) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b bg-white px-4 md:px-6">
@@ -80,6 +90,11 @@ const Navbar = () => {
                 {dept.name} Department Head
               </DropdownMenuItem>
             ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Other Roles</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleRoleChange('student', 'Computer Science')}>
+              Student View
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         
