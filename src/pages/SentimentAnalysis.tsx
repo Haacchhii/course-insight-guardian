@@ -1,16 +1,20 @@
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Layout/Navbar";
 import Sidebar from "@/components/Layout/Sidebar";
 import SentimentOverview from "@/components/Sentiment/SentimentOverview";
 import SentimentByDepartment from "@/components/Sentiment/SentimentByDepartment";
+import SentimentByCourse from "@/components/Sentiment/SentimentByCourse";
+import SentimentTrends from "@/components/Sentiment/SentimentTrends";
 import { useUser } from "@/contexts/UserContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { mockEvaluations } from "@/utils/mockData";
 
 const SentimentAnalysis = () => {
-  const { userRole, department } = useUser();
+  const { userRole, department, isStudent } = useUser();
+  const navigate = useNavigate();
   const [semesterFilter, setSemesterFilter] = useState("all");
 
   // Get unique semesters for the filter
@@ -25,7 +29,12 @@ const SentimentAnalysis = () => {
 
   useEffect(() => {
     document.title = "Sentiment Analysis | Course Insight Guardian";
-  }, []);
+    
+    // Redirect students to their evaluation page
+    if (isStudent()) {
+      navigate('/student-evaluation');
+    }
+  }, [isStudent, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
@@ -59,8 +68,18 @@ const SentimentAnalysis = () => {
             
             <SentimentOverview semesterFilter={semesterFilter} />
             
-            <div className="grid gap-4">
-              <SentimentByDepartment semesterFilter={semesterFilter} />
+            <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+              {userRole === 'admin' ? (
+                <>
+                  <SentimentByDepartment semesterFilter={semesterFilter} />
+                  <SentimentTrends />
+                </>
+              ) : (
+                <>
+                  <SentimentByCourse semesterFilter={semesterFilter} />
+                  <SentimentTrends />
+                </>
+              )}
             </div>
           </div>
         </main>

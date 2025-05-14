@@ -1,17 +1,35 @@
 
+import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { mockEvaluations } from "@/utils/mockData";
+import { useUser } from "@/contexts/UserContext";
 
 const AnomalyDetection = () => {
-  const anomalies = mockEvaluations.filter(evaluation => evaluation.isAnomaly);
+  const { userRole, department } = useUser();
+  
+  // Filter anomalies based on user role
+  const anomalies = useMemo(() => {
+    const allAnomalies = mockEvaluations.filter(evaluation => evaluation.isAnomaly);
+    
+    if (userRole === 'admin') {
+      return allAnomalies; // Show all anomalies for admin
+    } else if (userRole === 'department_head' && department) {
+      // Filter anomalies by department
+      return allAnomalies.filter(anomaly => anomaly.department === department);
+    }
+    
+    return allAnomalies; // Default fallback
+  }, [userRole, department]);
 
   return (
     <Card className="md:col-span-2">
       <CardHeader>
         <CardTitle>Anomaly Detection</CardTitle>
         <CardDescription>
-          Unusual feedback patterns detected by DBSCAN clustering
+          {userRole === 'admin'
+            ? 'Unusual feedback patterns detected by DBSCAN clustering'
+            : `Unusual feedback patterns detected for ${department} department`}
         </CardDescription>
       </CardHeader>
       <CardContent>

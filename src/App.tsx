@@ -55,7 +55,7 @@ function ProtectedRoute({ children, allowedRoles = ["admin", "department_head"] 
 
 // Student Route component
 function StudentRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading, isStudent } = useUser();
+  const { isAuthenticated, isLoading, userRole } = useUser();
   const location = useLocation();
   
   // Show loading state while checking authentication
@@ -71,7 +71,7 @@ function StudentRoute({ children }: { children: React.ReactNode }) {
   }
   
   // Redirect to dashboard if not a student
-  if (!isStudent()) {
+  if (userRole !== 'student') {
     return <Navigate to="/dashboard" replace />;
   }
   

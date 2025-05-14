@@ -1,13 +1,44 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { mockSentimentData } from "@/utils/mockData";
+import { mockSentimentData, mockEvaluations } from "@/utils/mockData";
+import { useUser } from "@/contexts/UserContext";
 
 const COLORS = ['#2ecc71', '#3498db', '#95a5a6', '#e74c3c', '#c0392b'];
 
 const SentimentChart = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const { userRole, department } = useUser();
+  
+  // Filter data based on user role
+  const filteredSentimentData = useMemo(() => {
+    if (userRole === 'admin') {
+      return mockSentimentData; // Show all data for admin
+    } else if (userRole === 'department_head' && department) {
+      // Filter evaluations by department
+      const departmentEvals = mockEvaluations.filter(eval_ => eval_.department === department);
+      
+      // Count sentiments for this department
+      const veryPositive = departmentEvals.filter(e => e.sentimentScore > 0.6).length;
+      const positive = departmentEvals.filter(e => e.sentimentScore > 0.3 && e.sentimentScore <= 0.6).length;
+      const neutral = departmentEvals.filter(e => e.sentimentScore >= -0.3 && e.sentimentScore <= 0.3).length;
+      const negative = departmentEvals.filter(e => e.sentimentScore < -0.3 && e.sentimentScore >= -0.6).length;
+      const veryNegative = departmentEvals.filter(e => e.sentimentScore < -0.6).length;
+      
+      // Return department-specific sentiment data
+      return [
+        { name: 'Very Positive', value: veryPositive },
+        { name: 'Positive', value: positive },
+        { name: 'Neutral', value: neutral },
+        { name: 'Negative', value: negative },
+        { name: 'Very Negative', value: veryNegative }
+      ];
+    }
+    
+    // Default fallback
+    return mockSentimentData;
+  }, [userRole, department]);
   
   const onPieEnter = (_: any, index: number) => {
     setActiveIndex(index);
@@ -42,7 +73,9 @@ const SentimentChart = () => {
       <CardHeader>
         <CardTitle>Sentiment Analysis</CardTitle>
         <CardDescription>
-          Breakdown of feedback sentiment using SVM classification
+          {userRole === 'admin' 
+            ? 'Breakdown of feedback sentiment across all departments'
+            : `Breakdown of feedback sentiment for ${department} department`}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,7 +83,7 @@ const SentimentChart = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={mockSentimentData}
+                data={filteredSentimentData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -61,7 +94,7 @@ const SentimentChart = () => {
                 onMouseEnter={onPieEnter}
                 onMouseLeave={onPieLeave}
               >
-                {mockSentimentData.map((entry, index) => (
+                {filteredSentimentData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={COLORS[index % COLORS.length]} 
@@ -78,7 +111,7 @@ const SentimentChart = () => {
           </ResponsiveContainer>
         </div>
         <div className="mt-2 flex flex-wrap justify-center gap-4">
-          {mockSentimentData.map((entry, index) => (
+          {filteredSentimentData.map((entry, index) => (
             <div key={index} className="flex items-center gap-2">
               <div 
                 className="h-3 w-3 rounded-full" 
