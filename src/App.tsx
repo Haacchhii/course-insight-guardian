@@ -13,6 +13,7 @@ import AnomalyDetectionPage from "./pages/AnomalyDetection";
 import CoursesPage from "./pages/Courses";
 import DepartmentsPage from "./pages/Departments";
 import EvaluationsPage from "./pages/Evaluations";
+import EvaluationQuestionsPage from "./pages/EvaluationQuestions";
 import StudentEvaluationPage from "./pages/StudentEvaluation";
 import NotFound from "./pages/NotFound";
 
@@ -110,6 +111,11 @@ const AppRoutes = () => (
     <Route path="/evaluations" element={
       <ProtectedRoute>
         <EvaluationsPage />
+      </ProtectedRoute>
+    } />
+    <Route path="/evaluation-questions" element={
+      <ProtectedRoute>
+        <EvaluationQuestionsPage />
       </ProtectedRoute>
     } />
     <Route path="/student-evaluation" element={

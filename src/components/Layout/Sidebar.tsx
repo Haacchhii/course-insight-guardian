@@ -10,7 +10,8 @@ import {
   Settings,
   List, 
   Book,
-  University
+  University,
+  FileText
 } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 
@@ -94,7 +95,13 @@ const Sidebar = () => {
               isActive={pathName === "/departments"}
             />
             <SidebarItem
-              icon={Book}
+              icon={FileText}
+              label="Evaluation Questions"
+              href="/evaluation-questions"
+              isActive={pathName === "/evaluation-questions"}
+            />
+            <SidebarItem
+              icon={List}
               label="Evaluations"
               href="/evaluations"
               isActive={pathName === "/evaluations"}

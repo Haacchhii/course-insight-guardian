@@ -8,6 +8,9 @@ import SentimentChart from "@/components/Dashboard/SentimentChart";
 import AnomalyDetection from "@/components/Dashboard/AnomalyDetection";
 import FeedbackTable from "@/components/Dashboard/FeedbackTable";
 import { useUser } from "@/contexts/UserContext";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const { userRole, isStudent } = useUser();
@@ -29,13 +32,24 @@ const Dashboard = () => {
         <Navbar />
         <main className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold">Course Evaluation Dashboard</h1>
-              <p className="text-muted-foreground">
-                {userRole === 'admin' 
-                  ? 'Insights and analytics for the College of Computing, Arts, and Sciences'
-                  : `Insights and analytics for the ${userRole === 'department_head' ? 'Department of' : ''} ${userRole}`}
-              </p>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-bold">Course Evaluation Dashboard</h1>
+                <p className="text-muted-foreground">
+                  {userRole === 'admin' 
+                    ? 'Insights and analytics for the College of Computing, Arts, and Sciences'
+                    : `Insights and analytics for the ${userRole === 'department_head' ? 'Department of' : ''} ${userRole}`}
+                </p>
+              </div>
+
+              {userRole === 'department_head' && (
+                <Link to="/evaluation-questions">
+                  <Button className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Manage Evaluation Questions
+                  </Button>
+                </Link>
+              )}
             </div>
             
             <OverviewStats />
