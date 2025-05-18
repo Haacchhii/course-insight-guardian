@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { mockEvaluations } from "@/utils/mockData";
 import { useUser } from "@/contexts/UserContext";
 
@@ -13,6 +16,9 @@ const EvaluationsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [semesterFilter, setSemesterFilter] = useState("all");
+  const [selectedComment, setSelectedComment] = useState<string | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [commentModalOpen, setCommentModalOpen] = useState(false);
   
   // Filter evaluations based on user role, department, search term and semester
   const filteredEvaluations = mockEvaluations.filter(evaluation => {
@@ -50,24 +56,18 @@ const EvaluationsList = () => {
     return a.semester === 'Second' ? -1 : 1; // Second semester comes before First
   });
   
-  // Get unique semesters for the filter
-  const semesters = Array.from(new Set(mockEvaluations.map(
-    evaluation => `${evaluation.semester} ${evaluation.year}`
-  ))).sort((a, b) => {
-    const yearA = parseInt(a.split(' ')[1]);
-    const yearB = parseInt(b.split(' ')[1]);
-    // Sort by year (descending)
-    if (yearA !== yearB) return yearB - yearA;
-    // Then by semester (Second comes before First)
-    return a.includes('Second') ? -1 : 1;
-  });
-  
   const getSentimentLabel = (score: number) => {
     if (score > 0.6) return { label: "Very Positive", variant: "default" };
     if (score > 0.2) return { label: "Positive", variant: "outline" };
     if (score >= -0.2) return { label: "Neutral", variant: "secondary" };
     if (score >= -0.6) return { label: "Negative", variant: "outline" };
     return { label: "Very Negative", variant: "destructive" };
+  };
+
+  const openCommentModal = (comment: string, course: string) => {
+    setSelectedComment(comment);
+    setSelectedCourse(course);
+    setCommentModalOpen(true);
   };
 
   return (
@@ -136,8 +136,20 @@ const EvaluationsList = () => {
                       <TableCell className="font-medium">{evaluation.course}</TableCell>
                       <TableCell>{evaluation.instructor}</TableCell>
                       <TableCell>{evaluation.ratings.overall.toFixed(1)}</TableCell>
-                      <TableCell className="hidden md:table-cell max-w-xs truncate">
-                        {evaluation.comments}
+                      <TableCell 
+                        className="hidden md:table-cell max-w-xs truncate cursor-pointer hover:text-blue-600 hover:underline"
+                        onClick={() => openCommentModal(evaluation.comments, evaluation.course)}
+                      >
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>{evaluation.comments}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Click to view full comment</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell>
                         <Badge variant={sentiment.variant as any}>
@@ -159,8 +171,38 @@ const EvaluationsList = () => {
           </Table>
         </div>
       </CardContent>
+
+      {/* Comment Dialog */}
+      <Dialog open={commentModalOpen} onOpenChange={setCommentModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedCourse} - Student Comment</DialogTitle>
+            <DialogDescription>
+              Complete evaluation feedback from student
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 border rounded-md bg-gray-50">
+            <p className="whitespace-pre-wrap">{selectedComment}</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setCommentModalOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
+
+// Get unique semesters for the filter
+const semesters = Array.from(new Set(mockEvaluations.map(
+  evaluation => `${evaluation.semester} ${evaluation.year}`
+))).sort((a, b) => {
+  const yearA = parseInt(a.split(' ')[1]);
+  const yearB = parseInt(b.split(' ')[1]);
+  // Sort by year (descending)
+  if (yearA !== yearB) return yearB - yearA;
+  // Then by semester (Second comes before First)
+  return a.includes('Second') ? -1 : 1;
+});
 
 export default EvaluationsList;
