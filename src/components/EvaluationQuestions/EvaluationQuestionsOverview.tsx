@@ -2,14 +2,38 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, BarChart, Clock } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
+import { useMemo } from "react";
 
 const EvaluationQuestionsOverview = () => {
   const { userRole, department } = useUser();
-
-  // Mock data for overview statistics
-  const totalQuestionSets = userRole === 'admin' ? 45 : 12;
-  const activeSets = userRole === 'admin' ? 15 : 4;
-  const totalResponses = userRole === 'admin' ? 2450 : 620;
+  
+  // Calculate statistics based on user role
+  const stats = useMemo(() => {
+    // Mock data for overview statistics - in a real app, this would come from an API
+    if (userRole === 'admin') {
+      return {
+        totalQuestionSets: 45,
+        activeSets: 15,
+        totalResponses: 2450,
+        description: 'Across all departments'
+      };
+    } else if (userRole === 'department_head') {
+      return {
+        totalQuestionSets: 12,
+        activeSets: 4,
+        totalResponses: 620,
+        description: `For ${department} department`
+      };
+    }
+    
+    // Default fallback (should not happen with proper routing)
+    return {
+      totalQuestionSets: 0,
+      activeSets: 0,
+      totalResponses: 0,
+      description: ''
+    };
+  }, [userRole, department]);
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -19,11 +43,9 @@ const EvaluationQuestionsOverview = () => {
           <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalQuestionSets}</div>
+          <div className="text-2xl font-bold">{stats.totalQuestionSets}</div>
           <p className="text-xs text-muted-foreground">
-            {userRole === 'admin' 
-              ? 'Across all departments' 
-              : `For ${department} department`}
+            {stats.description}
           </p>
         </CardContent>
       </Card>
@@ -34,7 +56,7 @@ const EvaluationQuestionsOverview = () => {
           <Clock className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{activeSets}</div>
+          <div className="text-2xl font-bold">{stats.activeSets}</div>
           <p className="text-xs text-muted-foreground">Question sets in use</p>
         </CardContent>
       </Card>
@@ -45,7 +67,7 @@ const EvaluationQuestionsOverview = () => {
           <BarChart className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{totalResponses}</div>
+          <div className="text-2xl font-bold">{stats.totalResponses}</div>
           <p className="text-xs text-muted-foreground">All time responses</p>
         </CardContent>
       </Card>
