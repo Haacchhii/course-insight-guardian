@@ -106,6 +106,8 @@ const ViewQuestionSetModal = ({
   // Combine the question set data with the mock questions
   const questions = mockQuestions;
 
+  if (!isOpen || !questionSet) return null;
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

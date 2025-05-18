@@ -7,7 +7,7 @@ import EvaluationQuestionsList from "@/components/EvaluationQuestions/Evaluation
 import CreateQuestionSetModal from "@/components/EvaluationQuestions/CreateQuestionSetModal";
 import { useUser } from "@/contexts/UserContext";
 import { Button } from "@/components/ui/button";
-import { FileText, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const EvaluationQuestionsPage = () => {
   const { userRole, department } = useUser();
