@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockDepartments, mockCourses, mockInstructors } from "@/utils/mockData";
+import { mockDepartments, mockCourses } from "@/utils/mockData";
 import { useUser } from "@/contexts/UserContext";
 
 const DepartmentsOverview = () => {
@@ -8,13 +8,12 @@ const DepartmentsOverview = () => {
   
   const totalDepartments = mockDepartments.length;
   const totalCourses = mockCourses.length;
-  const totalInstructors = mockInstructors.length;
   
   // Calculate highest rated department
   const highestRatedDept = [...mockDepartments].sort((a, b) => b.averageRating - a.averageRating)[0];
 
   return (
-    <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -37,20 +36,6 @@ const DepartmentsOverview = () => {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{totalCourses}</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Across all departments
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Total Instructors
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{totalInstructors}</div>
           <p className="text-xs text-muted-foreground mt-1">
             Across all departments
           </p>

@@ -47,9 +47,8 @@ const DepartmentsList = () => {
               <TableRow>
                 <TableHead>Code</TableHead>
                 <TableHead>Department Name</TableHead>
-                <TableHead>Department Head</TableHead>
+                <TableHead>Department Chair</TableHead>
                 <TableHead>Courses</TableHead>
-                <TableHead>Instructors</TableHead>
                 <TableHead>Average Rating</TableHead>
               </TableRow>
             </TableHeader>
@@ -61,7 +60,6 @@ const DepartmentsList = () => {
                     <TableCell>{department.name}</TableCell>
                     <TableCell>{department.headName}</TableCell>
                     <TableCell>{department.totalCourses}</TableCell>
-                    <TableCell>{department.totalInstructors}</TableCell>
                     <TableCell className={getRatingColorClass(department.averageRating)}>
                       {department.averageRating.toFixed(1)}/5.0
                     </TableCell>
@@ -69,7 +67,7 @@ const DepartmentsList = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     No departments found.
                   </TableCell>
                 </TableRow>
