@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Layout/Navbar";
@@ -6,7 +5,7 @@ import Sidebar from "@/components/Layout/Sidebar";
 import SentimentOverview from "@/components/Sentiment/SentimentOverview";
 import SentimentByDepartment from "@/components/Sentiment/SentimentByDepartment";
 import SentimentByCourse from "@/components/Sentiment/SentimentByCourse";
-import SentimentTrends from "@/components/Sentiment/SentimentTrends";
+import EvaluationCriteria from "@/components/Sentiment/SentimentTrends";
 import { useUser } from "@/contexts/UserContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
@@ -72,12 +71,12 @@ const SentimentAnalysis = () => {
               {userRole === 'admin' ? (
                 <>
                   <SentimentByDepartment semesterFilter={semesterFilter} />
-                  <SentimentTrends />
+                  <EvaluationCriteria />
                 </>
               ) : (
                 <>
                   <SentimentByCourse semesterFilter={semesterFilter} />
-                  <SentimentTrends />
+                  <EvaluationCriteria />
                 </>
               )}
             </div>

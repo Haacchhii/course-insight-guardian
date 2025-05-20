@@ -28,7 +28,7 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
   
   const evaluations = useMemo(() => {
     if (!course) return [];
-    return mockEvaluations.filter(evaluation => evaluation.course.includes(course.code));
+    return mockEvaluations.filter(evaluation => evaluation.course.includes(course.code) || evaluation.course.toLowerCase().includes(course.name.toLowerCase()));
   }, [course]);
   
   const sentimentData = useMemo(() => {
@@ -65,11 +65,16 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
       });
     });
     
-    return semesterData;
+    return semesterData.sort((a, b) => {
+      const yearA = parseInt(a.name.split(' ')[1]);
+      const yearB = parseInt(b.name.split(' ')[1]);
+      if (yearA !== yearB) return yearA - yearB;
+      return a.name.includes('First') ? -1 : 1;
+    });
   }, [course, evaluations]);
   
   const averageRatings = useMemo(() => {
-    if (!evaluations.length) return { overall: 0, content: 0, delivery: 0, assessment: 0 };
+    if (!evaluations.length) return { overall: 0, content: 0, delivery: 0, assessment: 0, support: 0 };
     
     const totals = evaluations.reduce(
       (acc, curr) => {
@@ -78,9 +83,10 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
           content: acc.content + curr.ratings.content,
           delivery: acc.delivery + curr.ratings.delivery,
           assessment: acc.assessment + curr.ratings.assessment,
+          support: acc.support + curr.ratings.support,
         };
       },
-      { overall: 0, content: 0, delivery: 0, assessment: 0 }
+      { overall: 0, content: 0, delivery: 0, assessment: 0, support: 0 }
     );
     
     const count = evaluations.length;
@@ -90,14 +96,16 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
       content: parseFloat((totals.content / count).toFixed(2)),
       delivery: parseFloat((totals.delivery / count).toFixed(2)),
       assessment: parseFloat((totals.assessment / count).toFixed(2)),
+      support: parseFloat((totals.support / count).toFixed(2)),
     };
   }, [evaluations]);
   
   const ratingBreakdown = useMemo(() => {
     return [
-      { name: 'Content', value: averageRatings.content },
-      { name: 'Delivery', value: averageRatings.delivery },
-      { name: 'Assessment', value: averageRatings.assessment },
+      { name: 'Content Quality', value: averageRatings.content },
+      { name: 'Delivery Method', value: averageRatings.delivery },
+      { name: 'Assessment Fairness', value: averageRatings.assessment },
+      { name: 'Support Provided', value: averageRatings.support },
     ];
   }, [averageRatings]);
   
@@ -107,6 +115,32 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
       .sort((a, b) => b.year - a.year || (b.semester === 'Second' ? 1 : -1))
       .slice(0, 5);
   }, [evaluations]);
+
+  // Generate sample sentiment comments if none exist (for demo purposes)
+  const sampleComments = useMemo(() => {
+    const defaultComments = [
+      {
+        comments: "The course materials were well organized and the instructor explained concepts clearly. I particularly enjoyed the practical exercises.",
+        ratings: { overall: 4.5 },
+        semester: "First",
+        year: 2023
+      },
+      {
+        comments: "Good course content but the pace was a bit fast. More examples would have been helpful.",
+        ratings: { overall: 3.8 },
+        semester: "Second",
+        year: 2023
+      },
+      {
+        comments: "The instructor was very knowledgeable and responsive to questions. The assignments were challenging but fair.",
+        ratings: { overall: 4.2 },
+        semester: "First",
+        year: 2023
+      }
+    ];
+    
+    return recentComments.length > 0 ? recentComments : defaultComments;
+  }, [recentComments]);
 
   if (!course) return null;
 
@@ -151,7 +185,7 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
                 <CardContent>
                   <div className="flex items-center justify-center">
                     <div className="text-5xl font-bold text-university-700">
-                      {evaluations.length}
+                      {evaluations.length || "No data"}
                     </div>
                   </div>
                 </CardContent>
@@ -171,7 +205,7 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
                       <XAxis type="number" domain={[0, 5]} />
                       <YAxis dataKey="name" type="category" width={100} />
                       <Tooltip formatter={(value) => [`${value}/5.0`, 'Rating']} />
-                      <Bar dataKey="value" fill="#3b82f6" />
+                      <Bar dataKey="value" fill="#3b82f6" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -182,33 +216,53 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
           <TabsContent value="sentiment" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Sentiment Trends</CardTitle>
-                <CardDescription>Sentiment analysis across semesters</CardDescription>
+                <CardTitle>Criteria Comparison</CardTitle>
+                <CardDescription>Breakdown of evaluation criteria</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={sentimentData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip 
-                        formatter={(value) => {
-                          // Ensure value is a number before calling toFixed
-                          const numValue = typeof value === 'number' 
-                            ? value 
-                            : typeof value === 'string' 
-                              ? parseFloat(value) 
-                              : 0;
-                          
-                          return [`${numValue.toFixed(1)}%`, 'Percentage'];
-                        }} 
-                      />
-                      <Line type="monotone" dataKey="positive" stroke="#22c55e" name="Positive" />
-                      <Line type="monotone" dataKey="neutral" stroke="#f59e0b" name="Neutral" />
-                      <Line type="monotone" dataKey="negative" stroke="#ef4444" name="Negative" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center">
+                      <span className="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                      <span>Content: {averageRatings.content}/5.0</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                      <span>Delivery: {averageRatings.delivery}/5.0</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-3 h-3 rounded-full bg-amber-500 mr-2"></span>
+                      <span>Assessment: {averageRatings.assessment}/5.0</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                      <span>Support: {averageRatings.support}/5.0</span>
+                    </div>
+                  </div>
+                  
+                  <div className="h-64 mt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={sentimentData.length > 0 ? sentimentData : [{ name: 'No Data', positive: 0, neutral: 0, negative: 0 }]}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis domain={[0, 100]} />
+                        <Tooltip 
+                          formatter={(value) => {
+                            const numValue = typeof value === 'number' 
+                              ? value 
+                              : typeof value === 'string' 
+                                ? parseFloat(value) 
+                                : 0;
+                            
+                            return [`${numValue.toFixed(1)}%`, 'Percentage'];
+                          }} 
+                        />
+                        <Bar dataKey="positive" stackId="a" fill="#22c55e" name="Positive" />
+                        <Bar dataKey="neutral" stackId="a" fill="#f59e0b" name="Neutral" />
+                        <Bar dataKey="negative" stackId="a" fill="#ef4444" name="Negative" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -217,31 +271,25 @@ const CourseDetailModal = ({ course, open, onOpenChange }: CourseDetailModalProp
           <TabsContent value="comments" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Recent Comments</CardTitle>
-                <CardDescription>Student feedback from course evaluations</CardDescription>
+                <CardTitle>Student Comments</CardTitle>
+                <CardDescription>Feedback from course evaluations</CardDescription>
               </CardHeader>
               <CardContent>
-                {recentComments.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentComments.map((comment, idx) => (
-                      <div key={idx} className="border-b pb-3 last:border-b-0">
-                        <p className="italic text-muted-foreground">"{comment.comments}"</p>
-                        <div className="flex justify-between mt-2">
-                          <span className="text-sm font-medium">
-                            Rating: {comment.ratings.overall}/5
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {comment.semester} {comment.year}
-                          </span>
-                        </div>
+                <div className="space-y-4">
+                  {sampleComments.map((comment, idx) => (
+                    <div key={idx} className="border-b pb-3 last:border-b-0">
+                      <p className="italic text-muted-foreground">"{comment.comments}"</p>
+                      <div className="flex justify-between mt-2">
+                        <span className="text-sm font-medium">
+                          Rating: {comment.ratings.overall}/5
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {comment.semester} {comment.year}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    No comments available for this course.
-                  </p>
-                )}
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
