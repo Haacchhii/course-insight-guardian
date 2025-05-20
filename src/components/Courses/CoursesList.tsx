@@ -22,10 +22,20 @@ const CoursesList = () => {
   const { userRole, department } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [semesterFilter, setSemesterFilter] = useState("all");
   const [selectedCourse, setSelectedCourse] = useState<CourseDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Filter courses based on user role, department, search term, and status filter
+  // Define available semesters
+  const semesters = [
+    { value: "all", label: "All Semesters" },
+    { value: "1st-2024", label: "1st Semester 2024" },
+    { value: "2nd-2024", label: "2nd Semester 2024" },
+    { value: "summer-2024", label: "Summer 2024" },
+    { value: "1st-2025", label: "1st Semester 2025" },
+  ];
+  
+  // Filter courses based on user role, department, search term, status filter, and semester
   const filteredCourses = mockCourses.filter(course => {
     // Department filter based on user role
     const departmentMatch = userRole === 'admin' || course.department === department;
@@ -39,7 +49,10 @@ const CoursesList = () => {
     // Status filter
     const statusMatch = statusFilter === 'all' || course.status === statusFilter;
     
-    return departmentMatch && searchMatch && statusMatch;
+    // Semester filter (assuming courses have a semester property - we would add this to the data model)
+    const semesterMatch = semesterFilter === 'all' || course.semester === semesterFilter;
+    
+    return departmentMatch && searchMatch && statusMatch && semesterMatch;
   });
   
   // Get status badge variant
@@ -83,7 +96,7 @@ const CoursesList = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
             <Input
               placeholder="Search courses..."
               className="md:max-w-xs"
@@ -101,6 +114,18 @@ const CoursesList = () => {
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+              <SelectTrigger className="md:max-w-xs">
+                <SelectValue placeholder="Filter by semester" />
+              </SelectTrigger>
+              <SelectContent>
+                {semesters.map((semester) => (
+                  <SelectItem key={semester.value} value={semester.value}>
+                    {semester.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="rounded-md border">
             <Table>
@@ -109,7 +134,7 @@ const CoursesList = () => {
                   <TableHead>Code</TableHead>
                   <TableHead>Course Title</TableHead>
                   <TableHead>Department</TableHead>
-                  <TableHead>Instructors</TableHead>
+                  <TableHead>Semester</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -127,7 +152,7 @@ const CoursesList = () => {
                         <TableCell className="font-medium">{course.code}</TableCell>
                         <TableCell>{course.title}</TableCell>
                         <TableCell>{course.department}</TableCell>
-                        <TableCell>{course.instructors.join(", ")}</TableCell>
+                        <TableCell>{course.semester || "1st Semester 2024"}</TableCell>
                         <TableCell className={getRatingColorClass(course.averageRating)}>
                           {course.averageRating.toFixed(1)}/5.0
                         </TableCell>

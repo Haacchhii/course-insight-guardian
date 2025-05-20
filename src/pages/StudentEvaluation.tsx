@@ -14,32 +14,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Sample student courses
+// Sample student courses with more detailed information
 const sampleCourses = [
-  "CS101 - Introduction to Programming",
-  "CS202 - Data Structures",
-  "MA101 - Calculus I",
-  "CS301 - Database Systems",
-  "CS350 - Artificial Intelligence",
-  "EN101 - Technical Communication",
-  "HU101 - Introduction to Philosophy",
-  "BA101 - Principles of Management"
+  { id: "1", code: "CS101", name: "Introduction to Programming", description: "Learn the basics of programming", status: "active", semester: "1st-2024" },
+  { id: "2", code: "CS202", name: "Data Structures", description: "Study of data structures and algorithms", status: "active", semester: "1st-2024" },
+  { id: "3", code: "MA101", name: "Calculus I", description: "Basic calculus and mathematical concepts", status: "active", semester: "1st-2024" },
+  { id: "4", code: "CS301", name: "Database Systems", description: "Database design and implementation", status: "active", semester: "1st-2024" },
+  { id: "5", code: "CS350", name: "Artificial Intelligence", description: "Introduction to AI concepts", status: "pending", semester: "2nd-2024" },
+  { id: "6", code: "EN101", name: "Technical Communication", description: "Effective communication for technical fields", status: "active", semester: "1st-2024" },
+  { id: "7", code: "HU101", name: "Introduction to Philosophy", description: "Basic philosophical concepts", status: "active", semester: "1st-2024" },
+  { id: "8", code: "BA101", name: "Principles of Management", description: "Introduction to management concepts", status: "inactive", semester: "2nd-2024" }
 ];
 
 // Sample evaluation questions
 const evaluationQuestions = {
   content: "How would you rate the quality of course materials?",
-  delivery: "How effective was the instructor's teaching approach?",
+  delivery: "How effective was the teaching approach?",
   assessment: "How fair and appropriate were the assessments?",
   support: "How would you rate the support provided during the course?",
   overall: "How would you rate the overall course experience?"
@@ -59,10 +55,21 @@ const StudentEvaluationPage = () => {
     overall: 0,
   });
   const [comment, setComment] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [semesterFilter, setSemesterFilter] = useState("1st-2024");
   
   useEffect(() => {
     document.title = "Course Evaluation | LPUB Batangas";
   }, []);
+
+  // Define available semesters
+  const semesters = [
+    { value: "all", label: "All Semesters" },
+    { value: "1st-2024", label: "1st Semester 2024" },
+    { value: "2nd-2024", label: "2nd Semester 2024" },
+    { value: "summer-2024", label: "Summer 2024" },
+    { value: "1st-2025", label: "1st Semester 2025" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -72,6 +79,18 @@ const StudentEvaluationPage = () => {
     });
     navigate("/");
   };
+
+  // Filter courses based on search term and semester
+  const filteredCourses = sampleCourses.filter(course => {
+    const searchMatch = 
+      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const semesterMatch = semesterFilter === "all" || course.semester === semesterFilter;
+    
+    return searchMatch && semesterMatch;
+  });
 
   const handleRatingChange = (category: keyof typeof ratings, value: number) => {
     setRatings(prev => ({
@@ -120,6 +139,10 @@ const StudentEvaluationPage = () => {
     setComment("");
   };
 
+  const handleCourseSelect = (courseId: string) => {
+    setSelectedCourse(courseId);
+  };
+
   // Get student courses (use sample courses if user.courses is not available)
   const studentCourses = user?.courses || sampleCourses;
 
@@ -154,37 +177,101 @@ const StudentEvaluationPage = () => {
           <div>
             <h1 className="text-2xl font-bold">Course Evaluation</h1>
             <p className="text-muted-foreground">
-              Provide your feedback to help improve course quality
+              Select a course to evaluate and provide your feedback
             </p>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {!selectedCourse ? (
             <Card>
               <CardHeader>
-                <CardTitle>Select Course</CardTitle>
-                <CardDescription>Choose the course you want to evaluate</CardDescription>
+                <CardTitle>My Courses</CardTitle>
+                <CardDescription>Select a course to evaluate</CardDescription>
               </CardHeader>
               <CardContent>
-                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {studentCourses.map((course) => (
-                      <SelectItem key={course} value={course}>
-                        {course}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-col md:flex-row gap-4 mb-4 flex-wrap">
+                  <Input
+                    placeholder="Search courses..."
+                    className="md:max-w-xs"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Select value={semesterFilter} onValueChange={setSemesterFilter}>
+                    <SelectTrigger className="md:max-w-xs">
+                      <SelectValue placeholder="Filter by semester" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {semesters.map((semester) => (
+                        <SelectItem key={semester.value} value={semester.value}>
+                          {semester.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Code</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Subject Description</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCourses.length > 0 ? (
+                        filteredCourses.map((course) => (
+                          <TableRow key={course.id}>
+                            <TableCell className="font-medium">{course.code}</TableCell>
+                            <TableCell>{course.name}</TableCell>
+                            <TableCell>{course.description}</TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                course.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : course.status === 'pending' 
+                                    ? 'bg-yellow-100 text-yellow-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button 
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCourseSelect(course.id)}
+                                disabled={course.status !== 'active'}
+                              >
+                                Evaluate
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="h-24 text-center">
+                            No courses found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
-            
-            {selectedCourse && (
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>{selectedCourse} Evaluation</CardTitle>
-                  <CardDescription>Rate the following aspects on a scale of 1 to 5</CardDescription>
+                  <CardTitle>
+                    {sampleCourses.find(c => c.id === selectedCourse)?.code}{" "}
+                    {sampleCourses.find(c => c.id === selectedCourse)?.name}
+                  </CardTitle>
+                  <CardDescription>
+                    {sampleCourses.find(c => c.id === selectedCourse)?.description}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
@@ -296,19 +383,22 @@ const StudentEvaluationPage = () => {
                     </p>
                     <Textarea
                       id="comments"
-                      placeholder="Enter your comments here... For example: The instructor was very knowledgeable but could improve on providing timely feedback on assignments."
+                      placeholder="Enter your comments here... For example: The course materials were very informative but could use more practical examples."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       className="min-h-[100px]"
                     />
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-end">
+                <CardFooter className="flex justify-between">
+                  <Button type="button" variant="outline" onClick={() => setSelectedCourse("")}>
+                    Back to Courses
+                  </Button>
                   <Button type="submit">Submit Evaluation</Button>
                 </CardFooter>
               </Card>
-            )}
-          </form>
+            </form>
+          )}
         </div>
       </main>
     </div>
