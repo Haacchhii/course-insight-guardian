@@ -1,12 +1,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts';
 import { mockEvaluations } from "@/utils/mockData";
 import { useUser } from "@/contexts/UserContext";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EvaluationCriteria = () => {
   const { userRole, department } = useUser();
+  const [chartType, setChartType] = useState<'bar' | 'radar'>('bar');
   
   const criteriaData = useMemo(() => {
     // Filter evaluations based on user role
@@ -29,6 +31,17 @@ const EvaluationCriteria = () => {
     ];
   }, [userRole, department]);
 
+  // Process data for radar chart
+  const radarData = useMemo(() => {
+    return [{
+      subject: 'Evaluation Criteria',
+      'Content Quality': criteriaData[0].value,
+      'Delivery Method': criteriaData[1].value,
+      'Assessment Fairness': criteriaData[2].value,
+      'Support Provided': criteriaData[3].value,
+    }];
+  }, [criteriaData]);
+
   return (
     <Card className="col-span-1">
       <CardHeader>
@@ -40,31 +53,84 @@ const EvaluationCriteria = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-80 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={criteriaData}
-              layout="vertical"
-              margin={{
-                top: 5,
-                right: 30,
-                left: 80,
-                bottom: 5,
-              }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" domain={[0, 5]} />
-              <YAxis dataKey="name" type="category" width={100} />
-              <Tooltip formatter={(value) => [`${value}/5.0`, 'Rating']} />
-              <Bar
-                dataKey="value"
-                fill="#3b82f6"
-                radius={[0, 4, 4, 0]}
-                barSize={20}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <Tabs defaultValue="bar" value={chartType} onValueChange={(value) => setChartType(value as 'bar' | 'radar')}>
+          <div className="flex justify-between items-center mb-4">
+            <TabsList>
+              <TabsTrigger value="bar">Bar Chart</TabsTrigger>
+              <TabsTrigger value="radar">Radar Chart</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="bar" className="mt-0">
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={criteriaData}
+                  layout="vertical"
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 80,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 5]} />
+                  <YAxis dataKey="name" type="category" width={100} />
+                  <Tooltip formatter={(value) => [`${value}/5.0`, 'Rating']} />
+                  <Bar
+                    dataKey="value"
+                    fill="#3b82f6"
+                    radius={[0, 4, 4, 0]}
+                    barSize={20}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="radar" className="mt-0">
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart outerRadius={90} width={730} height={250} data={radarData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" tick={false} />
+                  <PolarRadiusAxis angle={90} domain={[0, 5]} />
+                  <Radar 
+                    name="Content Quality" 
+                    dataKey="Content Quality" 
+                    stroke="#4CAF50" 
+                    fill="#4CAF50" 
+                    fillOpacity={0.6} 
+                  />
+                  <Radar 
+                    name="Delivery Method" 
+                    dataKey="Delivery Method" 
+                    stroke="#2196F3" 
+                    fill="#2196F3" 
+                    fillOpacity={0.6} 
+                  />
+                  <Radar 
+                    name="Assessment Fairness" 
+                    dataKey="Assessment Fairness" 
+                    stroke="#FF9800" 
+                    fill="#FF9800" 
+                    fillOpacity={0.6} 
+                  />
+                  <Radar 
+                    name="Support Provided" 
+                    dataKey="Support Provided" 
+                    stroke="#9C27B0" 
+                    fill="#9C27B0" 
+                    fillOpacity={0.6} 
+                  />
+                  <Legend />
+                  <Tooltip formatter={(value) => [`${value}/5.0`, '']} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

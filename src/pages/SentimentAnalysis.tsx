@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Layout/Navbar";
@@ -16,7 +17,7 @@ const SentimentAnalysis = () => {
   const navigate = useNavigate();
   const [semesterFilter, setSemesterFilter] = useState("all");
 
-  // Get unique semesters for the filter
+  // Get unique semesters for the filter with updated format
   const semesters = Array.from(new Set(mockEvaluations.map(
     evaluation => `${evaluation.semester} ${evaluation.year}`
   ))).sort((a, b) => {

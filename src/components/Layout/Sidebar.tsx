@@ -88,12 +88,14 @@ const Sidebar = () => {
               href="/courses"
               isActive={pathName === "/courses"}
             />
-            <SidebarItem
-              icon={University}
-              label="Departments"
-              href="/departments"
-              isActive={pathName === "/departments"}
-            />
+            {userRole === 'admin' && (
+              <SidebarItem
+                icon={University}
+                label="Departments"
+                href="/departments"
+                isActive={pathName === "/departments"}
+              />
+            )}
             <SidebarItem
               icon={FileText}
               label="Evaluation Questions"
