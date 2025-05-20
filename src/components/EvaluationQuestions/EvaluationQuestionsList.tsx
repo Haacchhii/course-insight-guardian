@@ -1,14 +1,21 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Filter, Search } from "lucide-react";
+import { Eye, Search, Check, Archive } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import ViewQuestionSetModal from "./ViewQuestionSetModal";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 // Mock data for question sets
 const mockQuestionSets = [
@@ -72,9 +79,31 @@ const EvaluationQuestionsList = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedQuestionSet, setSelectedQuestionSet] = useState<any>(null);
+  const [questionSets, setQuestionSets] = useState(mockQuestionSets);
+  const { toast } = useToast();
+
+  const handleViewQuestionSet = (questionSet: any) => {
+    setSelectedQuestionSet(questionSet);
+    setViewModalOpen(true);
+  };
+
+  const handleStatusChange = useCallback((questionSetId: string, newStatus: 'active' | 'archived') => {
+    setQuestionSets(prevSets => 
+      prevSets.map(qs => 
+        qs.id === questionSetId 
+          ? { ...qs, status: newStatus } 
+          : qs
+      )
+    );
+    
+    toast({
+      title: "Status Updated",
+      description: `Question set status changed to ${newStatus}`,
+    });
+  }, [toast]);
 
   // Filter question sets based on user role and filters
-  const filteredQuestionSets = mockQuestionSets
+  const filteredQuestionSets = questionSets
     .filter(qs => {
       // Department head can only see their department's question sets
       if (userRole === 'department_head') {
@@ -111,14 +140,9 @@ const EvaluationQuestionsList = () => {
       return true;
     });
 
-  const handleViewQuestionSet = (questionSet: any) => {
-    setSelectedQuestionSet(questionSet);
-    setViewModalOpen(true);
-  };
-
   // Extract unique departments and semesters for filters
-  const departments = [...new Set(mockQuestionSets.map(qs => qs.department))];
-  const semesters = [...new Set(mockQuestionSets.map(qs => qs.semester))];
+  const departments = [...new Set(questionSets.map(qs => qs.department))];
+  const semesters = [...new Set(questionSets.map(qs => qs.semester))];
 
   return (
     <Card>
@@ -200,9 +224,37 @@ const EvaluationQuestionsList = () => {
                     <TableCell>{qs.semester}</TableCell>
                     <TableCell>{qs.createdAt}</TableCell>
                     <TableCell>
-                      <Badge variant={qs.status === 'active' ? 'default' : 'secondary'}>
-                        {qs.status === 'active' ? 'Active' : 'Archived'}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Badge 
+                            variant={qs.status === 'active' ? 'default' : 'secondary'} 
+                            className="cursor-pointer hover:opacity-80"
+                          >
+                            {qs.status === 'active' ? 'Active' : 'Archived'}
+                          </Badge>
+                        </DropdownMenuTrigger>
+                        {/* Only show dropdown for admin and department head */}
+                        {(userRole === 'admin' || userRole === 'department_head') && (
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(qs.id, 'active')}
+                              disabled={qs.status === 'active'}
+                              className="flex items-center"
+                            >
+                              <Check className="mr-2 h-4 w-4" />
+                              <span>Mark Active</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleStatusChange(qs.id, 'archived')}
+                              disabled={qs.status === 'archived'}
+                              className="flex items-center"
+                            >
+                              <Archive className="mr-2 h-4 w-4" />
+                              <span>Archive</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        )}
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell>{qs.questionCount}</TableCell>
                     <TableCell>{qs.responseCount}</TableCell>

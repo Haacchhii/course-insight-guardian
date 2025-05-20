@@ -11,6 +11,7 @@ interface User {
   department: string | null;
   program?: string; // Added for student role
   courses?: string[]; // Added for student role
+  permissions?: string[]; // Added for role-based permissions
 }
 
 interface UserContextType {
@@ -22,6 +23,7 @@ interface UserContextType {
   isAdmin: () => boolean;
   isDepartmentHead: () => boolean;
   isStudent: () => boolean;
+  hasPermission: (permission: string) => boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -29,6 +31,39 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+// Define role-based permissions
+const rolePermissions = {
+  admin: [
+    'view_all_departments',
+    'manage_departments',
+    'view_all_courses',
+    'manage_courses',
+    'view_all_evaluations',
+    'export_data',
+    'import_data',
+    'manage_users',
+    'view_analytics',
+    'system_settings',
+    'approve_question_sets',
+    'create_global_questions',
+    'manage_question_banks',
+  ],
+  department_head: [
+    'view_department_courses',
+    'manage_department_courses',
+    'view_department_evaluations',
+    'create_question_sets',
+    'manage_own_question_sets',
+    'view_department_analytics',
+    'manage_department_instructors',
+  ],
+  student: [
+    'view_enrolled_courses',
+    'submit_evaluations',
+    'view_own_submissions',
+  ],
+};
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -57,6 +92,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const isDepartmentHead = () => userRole === 'department_head';
   const isStudent = () => userRole === 'student';
 
+  // Check if user has a specific permission
+  const hasPermission = (permission: string) => {
+    if (!userRole) return false;
+    return rolePermissions[userRole].includes(permission);
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
@@ -76,17 +117,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
       let userDepartment = department;
       let program = undefined;
       let courses = undefined;
+      let permissions = undefined;
 
       if (email.includes('student')) {
         role = 'student';
         userDepartment = 'Computer Science';
         program = 'Bachelor of Science in Computer Science';
         courses = ['CS101', 'CS201', 'MATH101', 'ENG101'];
+        permissions = rolePermissions.student;
       } else if (email.includes('head')) {
         role = 'department_head';
         userDepartment = userDepartment || 'Computer Science';
+        permissions = rolePermissions.department_head;
       } else {
         role = 'admin';
+        permissions = rolePermissions.admin;
       }
       
       // Mock successful login after validation
@@ -96,6 +141,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         name: email.split('@')[0], // Extract name from email
         role,
         department: userDepartment,
+        permissions,
       };
       
       if (role === 'student') {
@@ -133,6 +179,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isDepartmentHead,
       isStudent,
+      hasPermission,
       login,
       logout,
       isAuthenticated: !!user,
