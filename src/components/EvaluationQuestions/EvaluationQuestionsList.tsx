@@ -67,9 +67,9 @@ const mockQuestionSets = [
 const EvaluationQuestionsList = () => {
   const { userRole, department } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-  const [selectedSemester, setSelectedSemester] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [selectedSemester, setSelectedSemester] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedQuestionSet, setSelectedQuestionSet] = useState<any>(null);
 
@@ -91,21 +91,21 @@ const EvaluationQuestionsList = () => {
     })
     .filter(qs => {
       // Apply department filter (admin only)
-      if (selectedDepartment && userRole === 'admin') {
+      if (selectedDepartment !== "all" && userRole === 'admin') {
         return qs.department === selectedDepartment;
       }
       return true;
     })
     .filter(qs => {
       // Apply semester filter
-      if (selectedSemester) {
+      if (selectedSemester !== "all") {
         return qs.semester === selectedSemester;
       }
       return true;
     })
     .filter(qs => {
       // Apply status filter
-      if (selectedStatus) {
+      if (selectedStatus !== "all") {
         return qs.status === selectedStatus;
       }
       return true;
@@ -143,7 +143,7 @@ const EvaluationQuestionsList = () => {
                   <SelectValue placeholder="All Departments" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Departments</SelectItem>
+                  <SelectItem value="all">All Departments</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                   ))}
@@ -156,7 +156,7 @@ const EvaluationQuestionsList = () => {
                 <SelectValue placeholder="All Semesters" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Semesters</SelectItem>
+                <SelectItem value="all">All Semesters</SelectItem>
                 {semesters.map((sem) => (
                   <SelectItem key={sem} value={sem}>{sem}</SelectItem>
                 ))}
@@ -168,7 +168,7 @@ const EvaluationQuestionsList = () => {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
