@@ -1,4 +1,3 @@
-
 export interface CourseEvaluation {
   id: string;
   course: string;
@@ -61,6 +60,7 @@ export interface Course {
   averageRating: number;
   totalEvaluations: number;
   status: "active" | "inactive" | "pending";
+  semester: string; // Adding the missing semester property
 }
 
 export const mockEvaluations: CourseEvaluation[] = [
@@ -529,7 +529,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Santos"],
     averageRating: 4.7,
     totalEvaluations: 45,
-    status: "active"
+    status: "active",
+    semester: "1st-2024"
   },
   {
     id: "2",
@@ -541,7 +542,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Garcia"],
     averageRating: 3.1,
     totalEvaluations: 38,
-    status: "active"
+    status: "active",
+    semester: "1st-2024"
   },
   {
     id: "3",
@@ -553,7 +555,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Reyes"],
     averageRating: 4.8,
     totalEvaluations: 32,
-    status: "active"
+    status: "active",
+    semester: "1st-2024"
   },
   {
     id: "4",
@@ -565,7 +568,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Luna"],
     averageRating: 1.3,
     totalEvaluations: 28,
-    status: "active"
+    status: "active",
+    semester: "2nd-2024"
   },
   {
     id: "5",
@@ -577,7 +581,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Mendoza"],
     averageRating: 4.0,
     totalEvaluations: 36,
-    status: "active"
+    status: "active",
+    semester: "2nd-2024"
   },
   {
     id: "6",
@@ -589,7 +594,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Tan"],
     averageRating: 3.8,
     totalEvaluations: 30,
-    status: "active"
+    status: "active",
+    semester: "2nd-2024"
   },
   {
     id: "7",
@@ -601,7 +607,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Bautista"],
     averageRating: 1.9,
     totalEvaluations: 25,
-    status: "active"
+    status: "active",
+    semester: "summer-2024"
   },
   {
     id: "8",
@@ -613,7 +620,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Morales"],
     averageRating: 4.2,
     totalEvaluations: 40,
-    status: "active"
+    status: "active",
+    semester: "1st-2024"
   },
   {
     id: "9",
@@ -625,7 +633,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Lim"],
     averageRating: 4.4,
     totalEvaluations: 35,
-    status: "active"
+    status: "active",
+    semester: "2nd-2024"
   },
   {
     id: "10",
@@ -637,7 +646,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Cruz"],
     averageRating: 1.7,
     totalEvaluations: 32,
-    status: "active"
+    status: "active",
+    semester: "summer-2024"
   },
   {
     id: "11",
@@ -649,7 +659,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Villanueva"],
     averageRating: 4.1,
     totalEvaluations: 42,
-    status: "active"
+    status: "active",
+    semester: "1st-2024"
   },
   {
     id: "12",
@@ -661,7 +672,8 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Aquino"],
     averageRating: 4.0,
     totalEvaluations: 38,
-    status: "active"
+    status: "active",
+    semester: "1st-2025"
   },
   {
     id: "13",
@@ -673,7 +685,8 @@ export const mockCourses: Course[] = [
     instructors: ["Prof. Ramirez"],
     averageRating: 4.6,
     totalEvaluations: 36,
-    status: "active"
+    status: "active",
+    semester: "1st-2025"
   },
   {
     id: "14",
@@ -685,6 +698,7 @@ export const mockCourses: Course[] = [
     instructors: ["Dr. Santos"],
     averageRating: 1.2,
     totalEvaluations: 30,
-    status: "active"
+    status: "active",
+    semester: "1st-2025"
   }
 ];
