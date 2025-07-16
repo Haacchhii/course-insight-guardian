@@ -88,14 +88,6 @@ const Sidebar = () => {
               href="/courses"
               isActive={pathName === "/courses"}
             />
-            {userRole === 'admin' && (
-              <SidebarItem
-                icon={University}
-                label="Departments"
-                href="/departments"
-                isActive={pathName === "/departments"}
-              />
-            )}
             <SidebarItem
               icon={FileText}
               label="Evaluation Questions"
@@ -109,22 +101,6 @@ const Sidebar = () => {
               isActive={pathName === "/evaluations"}
             />
           </div>
-        </div>
-      </div>
-      <div className="border-t p-3">
-        <div className="flex flex-col gap-1">
-          <SidebarItem
-            icon={Settings}
-            label="Settings"
-            href="/settings"
-            isActive={pathName === "/settings"}
-          />
-          <SidebarItem
-            icon={Search}
-            label="Search"
-            href="/search"
-            isActive={pathName === "/search"}
-          />
         </div>
       </div>
     </aside>

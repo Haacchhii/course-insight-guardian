@@ -98,12 +98,6 @@ const Navbar = () => {
           </DropdownMenuContent>
         </DropdownMenu>
         
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Bell className="h-5 w-5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <Settings className="h-5 w-5" />
-        </Button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

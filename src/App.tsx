@@ -11,7 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import SentimentAnalysis from "./pages/SentimentAnalysis";
 import AnomalyDetectionPage from "./pages/AnomalyDetection";
 import CoursesPage from "./pages/Courses";
-import DepartmentsPage from "./pages/Departments";
+
 import EvaluationsPage from "./pages/Evaluations";
 import EvaluationQuestionsPage from "./pages/EvaluationQuestions";
 import StudentEvaluationPage from "./pages/StudentEvaluation";
@@ -101,11 +101,6 @@ const AppRoutes = () => (
     <Route path="/courses" element={
       <ProtectedRoute>
         <CoursesPage />
-      </ProtectedRoute>
-    } />
-    <Route path="/departments" element={
-      <ProtectedRoute>
-        <DepartmentsPage />
       </ProtectedRoute>
     } />
     <Route path="/evaluations" element={
