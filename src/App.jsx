@@ -21,10 +21,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 // Protected Route Component
-function ProtectedRoute({ children, allowedRoles = ["admin", "department_head"] }: { 
-  children: React.ReactNode, 
-  allowedRoles?: string[] 
-}) {
+function ProtectedRoute({ children, allowedRoles = ["admin", "department_head"] }) {
   const { isAuthenticated, isLoading, userRole } = useUser();
   const location = useLocation();
   
@@ -55,7 +52,7 @@ function ProtectedRoute({ children, allowedRoles = ["admin", "department_head"] 
 }
 
 // Student Route component
-function StudentRoute({ children }: { children: React.ReactNode }) {
+function StudentRoute({ children }) {
   const { isAuthenticated, isLoading, userRole } = useUser();
   const location = useLocation();
   
